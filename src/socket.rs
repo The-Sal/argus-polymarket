@@ -66,6 +66,10 @@ pub struct MarketDataConnection {
 }
 
 impl MarketDataConnection {
+    /// Opens a blocking TCP connection to the Argus server at `address` (e.g. `"localhost:9972"`).
+    ///
+    /// Panics if the connection cannot be established. Call [`read_data_forever`] immediately
+    /// after construction to start the background I/O threads before issuing any requests.
     pub fn new(address: &str) -> Self {
         println!("Connecting to server at {}", address);
         let stream = TcpStream::connect(address).expect("Could not connect to server");
@@ -83,18 +87,57 @@ impl MarketDataConnection {
         }
     }
 
+    /// Returns a shared handle to the live order book map.
+    ///
+    /// The returned `Arc<RwLock<HashMap<String, OrderBook>>>` is backed by the same allocation
+    /// that the background processing thread writes to. Every Protocol 2 packet received from
+    /// the server overwrites the entry for that symbol in place, so a read lock taken at any
+    /// point will see the most recent snapshot available. The map key is the `aot_p2_symbol`
+    /// string from [`CLOBInfo`], obtained via [`fetch_clob_id_information`].
     pub fn get_order_book(&self) -> Arc<RwLock<HashMap<String, OrderBook>>> {
         self.order_books.clone()
     }
 
+    /// Returns a shared handle to the market-data notification event.
+    ///
+    /// The background processing thread calls `notify(usize::MAX)` on this [`Event`] every time
+    /// a Protocol 2 order book packet is processed. Register a [`Listener`] *before* reading the
+    /// order book map to avoid missing updates between the read and the wait:
+    ///
+    /// ```
+    /// let listener = event.listen(); // register first
+    /// let snapshot = books.read().unwrap(); // then read
+    /// // ... use snapshot ...
+    /// drop(snapshot);
+    /// listener.wait(); // block until the next update arrives
+    /// ```
     pub fn get_order_book_event(&self) -> Arc<Event> {
         self.market_event.clone()
     }
 
+    /// Returns a shared handle to the system messages buffer.
+    ///
+    /// The background processing thread pushes `account_update`, `notification`, and
+    /// `fatal_error` messages from the server into this buffer as they arrive. Call
+    /// [`SystemMessagesPushed::drain`] on the write-locked guard to take all pending messages
+    /// and clear the buffer in one operation. A warning is printed to stdout if more than 5
+    /// messages accumulate without being drained.
     pub fn get_sys_msgs(&self) -> Arc<RwLock<SystemMessagesPushed>> {
         self.system_messages_pushed.clone()
     }
 
+    /// Spawns the background reading and processing threads and returns the reading thread's handle.
+    ///
+    /// Must be called once before any other method. Two threads are started:
+    /// - **Reading thread** — holds the TCP read lock, reads bytes into a rolling buffer, detects
+    ///   complete packets by their terminator byte, validates them with [`ProtocolFns::analyse_bytes`],
+    ///   and forwards them to the processing thread via a crossbeam channel.
+    /// - **Processing thread** — decodes each packet. Protocol 2 packets update the order book map
+    ///   and fire the market event. Protocol 1 packets are routed to either the system messages
+    ///   buffer (for push events) or the control message buffer (for request responses).
+    ///
+    /// The returned `JoinHandle` belongs to the reading thread. The processing thread is detached.
+    /// Both threads run indefinitely; the reading thread panics if the server closes the connection.
     pub fn read_data_forever(&mut self) -> JoinHandle<()> {
         let read_handle = Arc::clone(&self.read_stream_handle);
         let orderbooks_handle = Arc::clone(&self.order_books);
@@ -314,8 +357,15 @@ impl MarketDataConnection {
     }
 }
 
-#[allow(dead_code)]
 impl MarketDataConnection {
+    /// Subscribes to a single outcome token by its CLOB token ID.
+    ///
+    /// Sends a `subscribe` request to the server and blocks until the confirmation arrives
+    /// (up to 10 seconds). Returns a [`SubscriptionResponse`] whose `subscribed` vec contains
+    /// the token IDs that were successfully registered, and `failed` contains any that were not.
+    /// After a successful subscription the server will begin streaming Protocol 2 order book
+    /// packets for this token; look them up in the map from [`get_order_book`] using the
+    /// `aot_p2_symbol` from [`fetch_clob_id_information`].
     pub fn subscribe_to_instrument(
         &self,
         instrument: &str,
@@ -345,6 +395,12 @@ impl MarketDataConnection {
         Ok(subscription)
     }
 
+    /// Searches for market tickers whose names contain `query`.
+    ///
+    /// Sends a `search_markets` request to the server and blocks until the response arrives.
+    /// Returns an owned `Vec<String>` of matching ticker strings (e.g. `"btc-updown-5m-1746000000"`).
+    /// `limit` caps the number of results; defaults to 10 if `None`. Pass a larger limit (e.g. 200)
+    /// when searching for epoch-based markets where many windows may match the prefix.
     pub fn search_for_markets(
         &self,
         query: &str,
@@ -376,6 +432,13 @@ impl MarketDataConnection {
         Ok(markets)
     }
 
+    /// Subscribes to all outcome tokens belonging to a market event (identified by ticker).
+    ///
+    /// Sends a `subscribe_to_market_by_ticker` request and blocks until confirmation. Returns a
+    /// [`SubscriptionResponse`] where `subscribed` contains the CLOB token IDs for all outcomes
+    /// in the market — for binary (Up/Down) markets index 0 is the Up token and index 1 is the
+    /// Down token. Pass these token IDs to [`fetch_clob_id_information`] to resolve the
+    /// `aot_p2_symbol` needed to look up order books, and to [`place_order`] / [`cancel_order`].
     pub fn subscribe_to_event(
         &self,
         market_ticker: &str,
@@ -404,6 +467,11 @@ impl MarketDataConnection {
         Ok(subscription)
     }
 
+    /// Returns the current strike price (price-to-beat) for a market.
+    ///
+    /// Sends a `get_price_to_beat` request and blocks until the response arrives. The returned
+    /// `f64` is the fixed reference price for the market — the asset price at the time the
+    /// contract opened. It does not change over the life of the contract.
     pub fn get_price_to_beat(&self, market_ticker: &str) -> Result<f64, String> {
         let msg = OutBoundMessage::new(
             "get_price_to_beat".to_string(),
@@ -429,6 +497,12 @@ impl MarketDataConnection {
         Ok(price)
     }
 
+    /// Measures the round-trip latency from this client to the Argus server in milliseconds.
+    ///
+    /// Sends a `ping` request, records the wall-clock time before and after, and returns the
+    /// difference. The returned `u128` is the total elapsed milliseconds for the request/response
+    /// cycle over the local TCP connection to Argus, not the latency to the Polymarket exchange.
+    /// Use [`rtt_to_exchange_from_server`] for exchange latency.
     pub fn rtt_to_server(&self) -> Result<u128, String> {
         let time_now = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
@@ -459,6 +533,12 @@ impl MarketDataConnection {
         Ok(time_after - time_now)
     }
 
+    /// Returns the Argus server's measured round-trip latency to the Polymarket exchange in milliseconds.
+    ///
+    /// Sends an `rtt_to_exchange` request; the server pings the exchange and reports back its own
+    /// measured latency. The returned `u128` is that server-measured value converted to whole
+    /// milliseconds. This reflects the network distance between the Argus host and Polymarket's
+    /// infrastructure, not the latency from this client.
     pub fn rtt_to_exchange_from_server(&self) -> Result<u128, String> {
         let msg = OutBoundMessage::new(
             "rtt_to_exchange".to_string(),
@@ -485,6 +565,13 @@ impl MarketDataConnection {
         Ok((rtt_to_exchange * 1000.0) as u128)
     }
 
+    /// Fetches metadata for a CLOB token ID.
+    ///
+    /// Sends a `fetch_clob_id_information` request and blocks until the response arrives. Returns
+    /// an owned [`CLOBInfo`] containing the human-readable identifiers for the token: event name,
+    /// market name, outcome label (e.g. `"Yes"` / `"Up"`), ticker, market slug, and — critically —
+    /// `aot_p2_symbol`, which is the key used to look up this token's order book in the map
+    /// returned by [`get_order_book`].
     pub fn fetch_clob_id_information(&self, clob_id: &str) -> Result<CLOBInfo, String> {
         let msg = OutBoundMessage::new(
             "fetch_clob_id_information".to_string(),
@@ -517,6 +604,11 @@ impl MarketDataConnection {
         }
     }
 
+    /// Returns the account's current USDC cash balance.
+    ///
+    /// Sends a `get_balance` request and blocks until the response arrives. The returned `f64`
+    /// is the total liquid USDC balance — it does not account for capital already committed to
+    /// open orders. Query at startup to determine trading capital; do not poll this in a hot loop.
     pub fn get_balance(&self) -> Result<f64, String> {
         let msg = OutBoundMessage::new(
             "get_balance".to_string(),
@@ -543,6 +635,13 @@ impl MarketDataConnection {
         Ok(balance)
     }
 
+    /// Places a single order and returns the exchange's acknowledgement.
+    ///
+    /// Sends a `place_order` request and blocks until the server returns the placement response.
+    /// Returns an owned [`OrderPlacedMsg`] containing the assigned `order_id`, initial `status`,
+    /// and fill amounts (`taking_amount`, `making_amount`). An `Err` is returned if the server
+    /// reports an error; check [`OrderPlacedMsg::success`] for application-level failures.
+    /// For placing two legs atomically, prefer [`place_multiple_orders`].
     pub fn place_order(&self, order: PlaceOrder) -> Result<OrderPlacedMsg, String> {
         let msg = OutBoundMessage::new(
             "place_order".to_string(),
@@ -566,6 +665,13 @@ impl MarketDataConnection {
         }
     }
 
+    /// Places multiple orders in a single request and returns the acknowledgements for all successes.
+    ///
+    /// Sends a `place_multiple_orders` request and blocks until the server responds. Returns an
+    /// owned `Vec<OrderPlacedMsg>` containing one entry per successfully placed order. Orders that
+    /// failed on the server side are silently dropped from the success list (the server returns
+    /// them in a `failed` field that this method discards). Inspect each [`OrderPlacedMsg`]'s
+    /// `error_msg` field for per-order application-level failures.
     pub fn place_multiple_orders(
         &self,
         orders: Vec<PlaceOrder>,
@@ -597,6 +703,13 @@ impl MarketDataConnection {
         }
     }
 
+    /// Cancels a single open order by its order ID.
+    ///
+    /// Sends a `cancel_order` request and blocks until the response arrives. Returns an owned
+    /// [`OrderCancelled`] whose `canceled` vec contains the IDs that were successfully cancelled
+    /// and `not_canceled` contains any that were not (e.g. already filled). An `Err` is returned
+    /// if the server reports a transport-level error. For cancelling several orders at once,
+    /// prefer [`cancel_multiple_orders`] to avoid serial round-trips.
     pub fn cancel_order(&self, order_id: &str) -> Result<OrderCancelled, String> {
         let mut order_dict: HashMap<String, String> = HashMap::new();
         order_dict.insert("order_id".to_string(), order_id.to_string());
@@ -645,6 +758,12 @@ impl MarketDataConnection {
         }
     }
 
+    /// Cancels multiple open orders in a single request.
+    ///
+    /// Sends a `cancel_multiple_orders` request and blocks until the response arrives. Returns
+    /// an owned [`CancelledMultipleOrdersResponse`] whose `canceled` vec contains the successfully
+    /// cancelled order IDs and `not_canceled` is a map of order ID → reason for any that could
+    /// not be cancelled (e.g. already matched).
     pub fn cancel_multiple_orders(&self, order_ids: Vec<String>) -> Result<CancelledMultipleOrdersResponse, String> {
         let mut order_dict: HashMap<String, Vec<String>> = HashMap::new();
         order_dict.insert("order_ids".to_string(), order_ids);
@@ -661,7 +780,7 @@ impl MarketDataConnection {
             .expect("Failed to get order cancellation response");
 
         if response.error.is_some() {
-            return Err(format!("Error from server when cancelling multiple orders: {:?}", response.error));
+            Err(format!("Error from server when cancelling multiple orders: {:?}", response.error))
         } else {
             let data = response.data;
             let obj: CancelledMultipleOrdersResponse = serde_json::from_value(data)
@@ -670,6 +789,12 @@ impl MarketDataConnection {
         }
     }
 
+    /// Returns all currently open orders on the account.
+    ///
+    /// Sends a `get_orders` request and blocks until the response arrives. Returns an owned
+    /// `Vec<PolyMarketOrder>`, each representing one live resting order. The list reflects the
+    /// exchange's current state at the moment of the request; it is not a live-updating handle.
+    /// For real-time fill/cancel notifications use the system messages buffer from [`get_sys_msgs`].
     pub fn get_orders(&self) -> Result<Vec<PolyMarketOrder>, String> {
         let msg = OutBoundMessage::new(
             "get_orders".to_string(),
@@ -690,6 +815,13 @@ impl MarketDataConnection {
             .map_err(|e| format!("Failed to parse orders response: {}", e))
     }
 
+    /// Fetches the current exchange-side status of a single order.
+    ///
+    /// Sends a `get_order_status` request and blocks until the response arrives. Returns an owned
+    /// [`PolyMarketOrder`] snapshot from the exchange at the time of the request. Use this as a
+    /// REST fallback when the WebSocket `account_update` stream may have been delayed — for
+    /// example, immediately after placement to confirm the order was received, or to reconcile
+    /// fill amounts that the local book state has not yet reflected.
     pub fn get_order_status(&self, order_id: &str) -> Result<PolyMarketOrder, String> {
         let mut order_dict: HashMap<String, String> = HashMap::new();
         order_dict.insert("order_id".to_string(), order_id.to_string());
@@ -712,6 +844,12 @@ impl MarketDataConnection {
             .map_err(|e| format!("Failed to parse order status response: {}", e))
     }
 
+    /// Returns the account's current balance for a specific outcome token.
+    ///
+    /// Sends a `get_token_balance` request and blocks until the response arrives. The returned
+    /// `f64` is the number of shares of the given outcome token held in the account. Useful for
+    /// reconciling local position tracking against the exchange after fills, especially when
+    /// fee deductions push the actual balance slightly below the expected filled amount.
     pub fn get_token_balance(&self, token_id: &str) -> Result<f64, String> {
         let mut args: HashMap<String, String> = HashMap::new();
         args.insert("token_id".to_string(), token_id.to_string());

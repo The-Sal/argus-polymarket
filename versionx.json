@@ -1,239 +1,239 @@
 {
   "symbols_map": {
-    "MarketDataConnection::get_orders": [
-      "8fd1deba3af20dbb6dbd86ff5c318b882bd796b18ebdc142d0358cb0d238d25f",
-      "method"
+    "CancelledMultipleOrdersResponse": [
+      "b7e0d8ebb5490605b8315ad4c8d7554e6ac91c81836eed12d566850fb9e39342",
+      "struct"
     ],
-    "MarketDataConnection::place_multiple_orders": [
-      "b1206d0064462f128bde696f34e6c369056174d9151b1f9b20c68d0ee1d31763",
+    "ProtocolFns::maybe_decompress_p1": [
+      "b1c35e656ea26a0ab22638f6ae8810e210f577a3c151256daf963a5fb858eb70",
       "method"
     ],
     "MarketDataConnection::get_sys_msgs": [
-      "5d94cb766e7d201c6e9808c1eee9e883c679870a8285a79430a10ba3d47465aa",
+      "da51e85dca9457b5e34dc88d4d38b0c1c4ae7d7050d46e570d4293c0a30834f9",
       "method"
     ],
-    "deserialize_u64_from_string": [
-      "f2beb233e381c98a661a056896f239eca43fc4bb8a6a79358032d5cf4c1d0209",
-      "function"
-    ],
-    "ProtocolFns::bytes_to_orderbook": [
-      "f4aa7c51363e8f527389aa794db21a408c04232c90bef0f14f314e81bf90c8ac",
-      "method"
-    ],
-    "MarketDataConnection::new": [
-      "78ac3d84576394ddf8263a7ed3b6a68ba3ff569845adf7dc075fdc39fba60cb5",
-      "method"
-    ],
-    "OrderEvent": [
-      "268bdafebe6e81450018b636f948c20f8bae8260f200d1bbdf1595d2fccda97e",
-      "struct"
-    ],
-    "MarketDataConnection::get_order_book_event": [
-      "6d424b4b34a979cdc473193fc8bb7d9d958180d12734e9c11ce2b4670e2548eb",
-      "method"
-    ],
-    "PlaceOrder::is_marketable": [
-      "a9bcd31f1a8a04d0c749773bb8d6fa078c454fa5af47260cd756d3b544db4c9b",
-      "method"
-    ],
-    "TradeEvent": [
-      "63763f9e4135c873b7ffe2abb67002dc66bd3839bdfe973aabd8ce5aa1e6a7a4",
-      "struct"
-    ],
-    "ProtocolFns::analyse_bytes": [
-      "48d2390b4ca039bd9134c26865c222d79bbb250f83e8cdc5fb10b321862bfc6f",
-      "method"
-    ],
-    "MarketDataConnection::get_order_book": [
-      "324ab7720fa36cc77a6d4d644f7642d9f58c15188b050a8a91da6a0e0ae52f27",
-      "method"
-    ],
-    "OrderPlacedMsg": [
-      "309c9b84269d6a19351eee1013b77f4217ec4ee11772dc5ca884f00c406f4bef",
-      "struct"
-    ],
-    "PlaceOrder::new": [
-      "fb56fab843fa9e69bdb12ec5c488f63682b5657b2bf1dc33ef493700c89b1ded",
-      "method"
-    ],
-    "MarketDataConnection::fetch_clob_id_information": [
-      "0cd7a7a7aa368fc7194a2130442700539a582233d9de1c8f8819853a48391f7b",
-      "method"
-    ],
-    "OrderBook::print_orderbook": [
-      "c623e26f42b078789a343be37c9cc9433fd47d3f7d23964aad74cede2c39e01c",
-      "method"
-    ],
-    "ProtocolFns::maybe_decompress_p1": [
-      "ec25fbc47da2302d9436e433356d0497de4ca9d34fa0a2e8da7df33a4fd2e927",
-      "method"
-    ],
-    "MarketDataConnection::subscribe_to_instrument": [
-      "2ea13b5ad877c03c0bc0b10d17f2b67e2bdd6595737e3b116483fa121e31bebf",
-      "method"
-    ],
-    "MarketDataConnection::send_message": [
-      "b1ba523c98c2a757e802d9ac12e8aea8a2b55e092251a31d22f022aa59c82d9c",
-      "method"
-    ],
-    "Order": [
-      "69f0d8b6d427558d5b7087daf4688afb0f8aae3b3494c390dbb54aa120ae7b17",
-      "struct"
-    ],
-    "MarketDataConnection": [
-      "a8183a181ecd8bef42407e83f6b5e52666278d660a4dcee915b5ba921af52294",
-      "struct"
-    ],
-    "MarketDataConnection::get_price_to_beat": [
-      "7faa261190c92d66b827fe86f72baf1cf19a73b831bca1f7ec63668a11bda107",
-      "method"
-    ],
-    "PlaceOrder": [
-      "3a02c670b66b072f4afbf2b44273c694726559a782b99ef27b41da310a75ce12",
-      "struct"
-    ],
-    "deserialize_f64_from_string": [
-      "066ca31be2b70c54b12aac81b00b5ec71d2421067cdaa56e7b580d621c4d7830",
-      "function"
-    ],
-    "OrderBook": [
-      "766b5c7aa8bbd8342c0966d256d6dac7c8fa22d6afd5f56d440ae0bdaec0ba84",
-      "struct"
-    ],
-    "InBoundMessage": [
-      "83571b7577a18fe546d9053649e26cf3d822abcad0f137f5d3a8b1398cb41931",
-      "struct"
-    ],
-    "MarketDataConnection::get_token_balance": [
-      "e50f6246134acd0778c1777d386560a87c3506d4bab98d550ee72aae17a7918e",
-      "method"
-    ],
-    "SystemMessagesPushed::drain": [
-      "a0890cdd5f3695161870d597445c1cbf1c243d7b878e528947835cce385fe928",
-      "method"
-    ],
-    "MarketDataConnection::get_order_status": [
-      "f7a88a547c4b78b0c3a7607d8ff5083bb942423501cb2c908fbf7ae4c56cf9ac",
-      "method"
-    ],
-    "MarketDataConnection::rtt_to_server": [
-      "ed475d677831f8c8b157ce4b7c19cd40632c98be61bbd2cdc1c0490af0668b0e",
-      "method"
-    ],
-    "MarketDataConnection::read_data_forever": [
-      "4f834f7d3efeaa22f4d0bad630d3109e186abd031ccad1cacbe5aaa889ff7943",
-      "method"
-    ],
-    "MarketDataConnection::rtt_to_exchange_from_server": [
-      "b920440f17cbb510f0e6b5cf6b9827bbb8412e2167fbadfc86e59bfb500c3b6b",
-      "method"
-    ],
-    "ProtocolFns": [
-      "e97ef1bc534a436aa5adb0bea74d9f3ad77cd01aade1c07b8e5f25e9484bef5e",
-      "struct"
-    ],
-    "ProtocolFns::protocol_1_decoder": [
-      "72f17cb0df19cb80c9658fd26338178bc8f1b99567befcd5b410f7a2de15bb8e",
-      "method"
-    ],
-    "ProtocolFns::protocol_1_encoder": [
-      "4bb6b1df0173f549b3512ec0276223e9388f924f27e2f7186da789f18f3f156c",
-      "method"
-    ],
-    "SystemMessagesPushed::add_message": [
-      "718ec7bff64875d135e725f3900be0181edc6151081a93b0bc27262f9cc98187",
-      "method"
-    ],
-    "SystemMessagesPushed::new": [
-      "58906177a44a49994be7ed807f2c58340514a7dfdafbc9f3ceedcac7cba43b03",
-      "method"
-    ],
-    "SubscriptionResponse": [
-      "84c14b7f8e1616881ae71bbc0f09d427bb978271c862726ed9e535082b399f36",
-      "struct"
-    ],
-    "SystemMessagesPushed": [
-      "00bd47c017bb319788f1f90d0ba40d4c3f3296ca2c438e0c0cae5180280e55c0",
-      "struct"
-    ],
-    "MarketDataConnection::search_for_markets": [
-      "7fad92e66653e7a38ba4f345ef7bf2134a941b5e8be85efa83e37c8ce7df2737",
-      "method"
-    ],
-    "MarketDataConnection::cancel_multiple_orders": [
-      "81f996121f769bbf07d13727388870ebe31bbf0b037c44783973b95d1c438866",
+    "MarketDataConnection::place_order": [
+      "dac89e10aca2bac006d27887a264ff5d9d51bd6cae7982fe7feabe2fb6f49174",
       "method"
     ],
     "MakerOrder": [
       "51ed9b488c69a28d5134ce349a455d212a70462e89f5d095f1e72860835f2b8c",
       "struct"
     ],
-    "ProtocolFns::protocol_2_decoder": [
-      "97f66f0bdeda6d619ad39e44e410c28879a87b70c0b19b35dd97702d4b1eb383",
+    "SystemMessagesPushed::add_message": [
+      "718ec7bff64875d135e725f3900be0181edc6151081a93b0bc27262f9cc98187",
       "method"
     ],
-    "MarketDataConnection::get_balance": [
-      "b8af4d4d4c85c309f42b878aabd01e09c8e5b7eda9139402a0a54a63cddf4534",
-      "method"
-    ],
-    "Protocol2IR": [
-      "dd755743649d0afaddc7f1d2481886ff9cda05ba37ddd9845e0bed5333b78b38",
-      "struct"
-    ],
-    "MarketDataConnection::process_data_static": [
-      "240fec36b096d10e8abc2a0bfaf75433e9cb532f0ff12dfce69aae8129f6bdbb",
+    "MarketDataConnection::rtt_to_server": [
+      "2f45a343c2ded7eb4f7ff2d41a5466e22a8447757cd5631cdf55dc3b836fca19",
       "method"
     ],
     "MarketDataConnection::get_my_packet_with_verification": [
       "d9b66c87404a54ca8541e3dc34c2faf6431b9c161b6928c164500049e353813c",
       "method"
     ],
+    "PlaceOrder::is_marketable": [
+      "03fac616acfb765d6e3084ad49bd88bee2b9f343ab46323cfdbc88c808a292d1",
+      "method"
+    ],
     "CLOBInfo": [
       "8c331fbbb98a53a4a9bb71c395eb6ed0a117d9b10f640e9addb48e9e30c39d46",
       "struct"
     ],
-    "MarketDataConnection::subscribe_to_event": [
-      "49e0a8204614d5b4c580c2259f0dbcd50c6b3678d9c323a5ec150e9fa52c2a92",
+    "MarketDataConnection::subscribe_to_instrument": [
+      "51d8254248e245d52224c3d856d0745a8922ac95190a8aa6fe4922718026c017",
       "method"
     ],
-    "MarketDataConnection::place_order": [
-      "ee71c9ca015d409b3b2481086cce46fa962f53c88880a6817f192cc32c960d43",
+    "MarketDataConnection::cancel_multiple_orders": [
+      "101d6fef7474f34ede9236cab3c481c4a0db18311ef99d03ff3a2c21b11b7f8d",
       "method"
     ],
-    "OrderCancelled": [
-      "ba54c25b61729fab945a2476389c97150ba064829780daaf90c918f38a00d97e",
+    "TradeEvent": [
+      "63763f9e4135c873b7ffe2abb67002dc66bd3839bdfe973aabd8ce5aa1e6a7a4",
       "struct"
-    ],
-    "CancelledMultipleOrdersResponse": [
-      "b7e0d8ebb5490605b8315ad4c8d7554e6ac91c81836eed12d566850fb9e39342",
-      "struct"
-    ],
-    "deserialize_optional_f64_from_string": [
-      "2b3bdbe9c255f04a34093a14a09b0d9981ecf191f3d3ff15bcaa81a493bc7da1",
-      "function"
-    ],
-    "PlaceMultipleOrdersResponse": [
-      "f9d9976899bb2a7eaf164382e94bd3738775eb2b5b7e14461aa457eefa2a0cf6",
-      "struct"
-    ],
-    "OutBoundMessage::new": [
-      "c9810283165a7bf9ab11d0e4214a5441c74ca4dda06538a65f000f3899f76f8b",
-      "method"
     ],
     "OutBoundMessage": [
       "f95174a9e718ad4e64d302310480fc6e9bb56e40d43505c8f7a566bfea6b7906",
       "struct"
     ],
-    "MarketDataConnection::cancel_order": [
-      "022daa147254946b188fabf6c6184341991c6f3a70d15dc001d687cbcf8f24d3",
+    "MarketDataConnection::send_message": [
+      "b1ba523c98c2a757e802d9ac12e8aea8a2b55e092251a31d22f022aa59c82d9c",
+      "method"
+    ],
+    "MarketDataConnection::subscribe_to_event": [
+      "0307456371c3752d937a508a39585e88ac5d60cef035e373cafddbff10ed1708",
+      "method"
+    ],
+    "OrderEvent": [
+      "268bdafebe6e81450018b636f948c20f8bae8260f200d1bbdf1595d2fccda97e",
+      "struct"
+    ],
+    "deserialize_optional_f64_from_string": [
+      "e375d715494d8108efcc0a0a0eb76c08a490b7f2bd2f5a8c8dccc78be5ed8afb",
+      "function"
+    ],
+    "ProtocolFns::protocol_2_decoder": [
+      "ab26a70d20b0e21b0b1416edea29feadccbf5a01f351d025d1cd369f852d3b47",
+      "method"
+    ],
+    "MarketDataConnection::fetch_clob_id_information": [
+      "6f08ab1e463bb4d8012c9ceec784b2c6e89a0b4088c7c6207fde0b93b84c0e99",
+      "method"
+    ],
+    "MarketDataConnection::get_order_book": [
+      "84992f7eae4bb06d2e86aa19b6be1aefbb1db36f926181f75da4aaa5bc1afdb4",
+      "method"
+    ],
+    "MarketDataConnection::get_token_balance": [
+      "68aa9d75feb981bf5996e61fef999495445c18b2ba93e9a415162113b65129fb",
+      "method"
+    ],
+    "Protocol2IR": [
+      "dd755743649d0afaddc7f1d2481886ff9cda05ba37ddd9845e0bed5333b78b38",
+      "struct"
+    ],
+    "MarketDataConnection::get_order_status": [
+      "b54b376689faa46edac518ec11bd891d5f49fbce9f9ed99896abb575bb59e16e",
+      "method"
+    ],
+    "ProtocolFns::bytes_to_orderbook": [
+      "781706726bb99e72ce47d91811b66802b788788a8797c0ef4d4d3de34994814c",
+      "method"
+    ],
+    "OrderPlacedMsg": [
+      "309c9b84269d6a19351eee1013b77f4217ec4ee11772dc5ca884f00c406f4bef",
+      "struct"
+    ],
+    "ProtocolFns::protocol_1_encoder": [
+      "ba09868a9267e0d8283133c7a394d3bdfdb0ca12c8e359e4741bb3ff7e29d208",
+      "method"
+    ],
+    "PlaceOrder::new": [
+      "1d9d495a89085c16834badd9165c1aeff5252c6efed542855842b4e23aa67c66",
+      "method"
+    ],
+    "MarketDataConnection::rtt_to_exchange_from_server": [
+      "91c6610dce92daafdd5442d1bef8abec057671c74c24145cbadd8b2d5706a732",
+      "method"
+    ],
+    "SystemMessagesPushed": [
+      "00bd47c017bb319788f1f90d0ba40d4c3f3296ca2c438e0c0cae5180280e55c0",
+      "struct"
+    ],
+    "MarketDataConnection::place_multiple_orders": [
+      "ef49b97201a18c46fef8819e3869aa6ff30573a731eac7ca1fcbf25e8e2f15cd",
+      "method"
+    ],
+    "OrderBook": [
+      "766b5c7aa8bbd8342c0966d256d6dac7c8fa22d6afd5f56d440ae0bdaec0ba84",
+      "struct"
+    ],
+    "deserialize_f64_from_string": [
+      "af061def5f9a8c322bfb9d37bf8322d10c620d2ae82ffc64382628c06aec1de5",
+      "function"
+    ],
+    "SubscriptionResponse": [
+      "84c14b7f8e1616881ae71bbc0f09d427bb978271c862726ed9e535082b399f36",
+      "struct"
+    ],
+    "SystemMessagesPushed::drain": [
+      "a0890cdd5f3695161870d597445c1cbf1c243d7b878e528947835cce385fe928",
+      "method"
+    ],
+    "Order": [
+      "69f0d8b6d427558d5b7087daf4688afb0f8aae3b3494c390dbb54aa120ae7b17",
+      "struct"
+    ],
+    "OrderBook::print_orderbook": [
+      "c80f223d26119f8156bc0bdbb2b61b3312a78ec6ffac715ceb1faf96ffb51fa6",
+      "method"
+    ],
+    "OutBoundMessage::new": [
+      "f597fb7c80e141db4371753e0dff75c92300a7dc42622cfb67190f7604f95a5d",
+      "method"
+    ],
+    "ProtocolFns::protocol_1_decoder": [
+      "34afb68fd61104e91d4f594e42b30c7ddda6dc91f00472d7e53b0236fc88461b",
+      "method"
+    ],
+    "MarketDataConnection::search_for_markets": [
+      "5f7a07ee9a436cb30120f60abd430201e23564288c289695e67a452b1d4fa85b",
+      "method"
+    ],
+    "MarketDataConnection": [
+      "a8183a181ecd8bef42407e83f6b5e52666278d660a4dcee915b5ba921af52294",
+      "struct"
+    ],
+    "InBoundMessage": [
+      "83571b7577a18fe546d9053649e26cf3d822abcad0f137f5d3a8b1398cb41931",
+      "struct"
+    ],
+    "OrderCancelled": [
+      "ba54c25b61729fab945a2476389c97150ba064829780daaf90c918f38a00d97e",
+      "struct"
+    ],
+    "MarketDataConnection::read_data_forever": [
+      "a268012945ea73fcb650c8aca58abc8b2e9b11abd738acdd091cce3790bf62a1",
+      "method"
+    ],
+    "MarketDataConnection::new": [
+      "a2ef64926c68ece75b7be4286ea3a1be430139251a91defb0ef9b7c562a133de",
+      "method"
+    ],
+    "ProtocolFns": [
+      "e97ef1bc534a436aa5adb0bea74d9f3ad77cd01aade1c07b8e5f25e9484bef5e",
+      "struct"
+    ],
+    "MarketDataConnection::get_order_book_event": [
+      "7b97c96126e550c14ec581ba35b3ac9dbeb03e058b684c20c558ff52ce9f188e",
+      "method"
+    ],
+    "MarketDataConnection::get_price_to_beat": [
+      "fb40af6900c755026c6ee05000641d7509435c42b8abf396194b495163998662",
+      "method"
+    ],
+    "PlaceMultipleOrdersResponse": [
+      "f9d9976899bb2a7eaf164382e94bd3738775eb2b5b7e14461aa457eefa2a0cf6",
+      "struct"
+    ],
+    "MarketDataConnection::get_orders": [
+      "1a6ce65b42af9970977dd36f93b8cb3bd9051566dee37a3aeb1ebc2a1c9a7cd3",
+      "method"
+    ],
+    "PlaceOrder": [
+      "3a02c670b66b072f4afbf2b44273c694726559a782b99ef27b41da310a75ce12",
+      "struct"
+    ],
+    "SystemMessagesPushed::new": [
+      "58906177a44a49994be7ed807f2c58340514a7dfdafbc9f3ceedcac7cba43b03",
       "method"
     ],
     "PolyMarketOrder": [
       "b98b3e6f24e542228668bf6178c663c9f48b3b68f4a5bed99be2285dfcff2410",
       "struct"
+    ],
+    "ProtocolFns::analyse_bytes": [
+      "744b1311361304fabedd191d5d3844682fb29ab494997f6f22ac6facba534b5a",
+      "method"
+    ],
+    "MarketDataConnection::process_data_static": [
+      "240fec36b096d10e8abc2a0bfaf75433e9cb532f0ff12dfce69aae8129f6bdbb",
+      "method"
+    ],
+    "MarketDataConnection::get_balance": [
+      "09504c16201045d72b8b277c62a1ede82d8fa56f79d74b5a81915130fa41d37f",
+      "method"
+    ],
+    "deserialize_u64_from_string": [
+      "365c5ae93289b5206a9c9bd347df4a50deea0edb87a605f4ab4a7c4c90aa4878",
+      "function"
+    ],
+    "MarketDataConnection::cancel_order": [
+      "fb65d885d276e992b620d07380a2743b04175f70ebb71d19b6b4925de4168949",
+      "method"
     ]
   },
   "major_version": 1,
   "minor_version": 0,
-  "patch_version": 0
+  "patch_version": 1
 }

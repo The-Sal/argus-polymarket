@@ -1,3 +1,40 @@
 Version 1.0.0
 
 ====================================================================================================
+Version 1.0.1
+Changes:
+    * MarketDataConnection::new (method)
+    * MarketDataConnection::get_order_book (method)
+    * MarketDataConnection::get_order_book_event (method)
+    * MarketDataConnection::get_sys_msgs (method)
+    * MarketDataConnection::read_data_forever (method)
+    * MarketDataConnection::subscribe_to_instrument (method)
+    * MarketDataConnection::search_for_markets (method)
+    * MarketDataConnection::subscribe_to_event (method)
+    * MarketDataConnection::get_price_to_beat (method)
+    * MarketDataConnection::rtt_to_server (method)
+    * MarketDataConnection::rtt_to_exchange_from_server (method)
+    * MarketDataConnection::fetch_clob_id_information (method)
+    * MarketDataConnection::get_balance (method)
+    * MarketDataConnection::place_order (method)
+    * MarketDataConnection::place_multiple_orders (method)
+    * MarketDataConnection::cancel_order (method)
+    * MarketDataConnection::cancel_multiple_orders (method)
+    * MarketDataConnection::get_orders (method)
+    * MarketDataConnection::get_order_status (method)
+    * MarketDataConnection::get_token_balance (method)
+    * deserialize_u64_from_string (function)
+    * deserialize_f64_from_string (function)
+    * deserialize_optional_f64_from_string (function)
+    * PlaceOrder::new (method)
+    * PlaceOrder::is_marketable (method)
+    * OrderBook::print_orderbook (method)
+    * OutBoundMessage::new (method)
+    * ProtocolFns::analyse_bytes (method)
+    * ProtocolFns::protocol_1_encoder (method)
+    * ProtocolFns::protocol_1_decoder (method)
+    * ProtocolFns::maybe_decompress_p1 (method)
+    * ProtocolFns::protocol_2_decoder (method)
+    * ProtocolFns::bytes_to_orderbook (method)
+
+====================================================================================================

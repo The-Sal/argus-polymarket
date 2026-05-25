@@ -7,6 +7,11 @@ use serde::{Deserialize, Deserializer, Serialize};
 use base64::{Engine, engine::general_purpose::STANDARD as BASE64};
 
 
+/// Deserializes a `u64` from either a JSON number or a quoted numeric string.
+///
+/// Polymarket's API inconsistently returns integer fields as bare numbers in some responses
+/// and as quoted strings in others. Use this as `#[serde(deserialize_with = "deserialize_u64_from_string")]`
+/// on any `u64` field that may arrive as either form.
 pub fn deserialize_u64_from_string<'de, D>(deserializer: D) -> Result<u64, D::Error>
 where
     D: Deserializer<'de>,
@@ -25,6 +30,11 @@ where
     }
 }
 
+/// Deserializes a `f64` from either a JSON number or a quoted numeric string.
+///
+/// Polymarket's API returns price and size fields as quoted strings (e.g. `"0.45"`) in
+/// most contexts. Use this as `#[serde(deserialize_with = "deserialize_f64_from_string")]`
+/// on any `f64` field that may arrive as either form.
 pub fn deserialize_f64_from_string<'de, D>(deserializer: D) -> Result<f64, D::Error>
 where
     D: Deserializer<'de>,
@@ -43,6 +53,11 @@ where
     }
 }
 
+/// Deserializes an `Option<f64>` from a JSON number, quoted numeric string, `null`, or empty string.
+///
+/// Handles the four forms Polymarket uses for optional numeric fields: a bare number, a quoted
+/// number string, JSON `null`, or an empty string `""` (all of which map to `None` except the
+/// numeric forms). Use as `#[serde(deserialize_with = "deserialize_optional_f64_from_string")]`.
 pub fn deserialize_optional_f64_from_string<'de, D>(
     deserializer: D,
 ) -> Result<Option<f64>, D::Error>
@@ -210,6 +225,12 @@ pub struct PlaceOrder {
 }
 
 impl PlaceOrder {
+    /// Constructs a new `PlaceOrder`.
+    ///
+    /// `token_id` is the CLOB outcome token ID (from [`SubscriptionResponse`] or [`CLOBInfo`]).
+    /// `price` is in cents on the dollar (0.01–0.99). `size` is the number of shares.
+    /// `order_type` defaults to `"GTC"` (Good-Till-Cancelled) if `None`; also accepts `"GTD"`,
+    /// `"FOK"` (Fill-Or-Kill), and `"FAK"` (Fill-And-Kill).
     pub fn new(
         token_id: &str,
         price: f64,
@@ -229,6 +250,10 @@ impl PlaceOrder {
         }
     }
 
+    /// Checks whether the order meets Polymarket's minimum notional value of $1.
+    ///
+    /// Returns `Ok(())` if `price * size > 1.0`, or `Err` with a descriptive message if not.
+    /// Call this before submitting to avoid a server-side rejection.
     pub fn is_marketable(&self) -> Result<(), String> {
         let order_value = self.price * self.size;
         if order_value > 1f64 {
@@ -308,6 +333,11 @@ pub struct OrderBook {
 }
 
 impl OrderBook {
+    /// Prints a formatted side-by-side view of the order book to stdout.
+    ///
+    /// Bids are shown on the left and asks on the right, both sorted best-first. Column widths are
+    /// computed from the actual data so the output aligns cleanly regardless of price/quantity
+    /// magnitude. Prints nothing but the header if both sides are empty.
     pub fn print_orderbook(&self) {
         use std::fmt::Write;
         let mut out = String::with_capacity(4096);
@@ -412,6 +442,12 @@ pub struct OutBoundMessage {
 }
 
 impl OutBoundMessage {
+    /// Constructs an outbound message with a randomly generated correlation ID if one is not provided.
+    ///
+    /// `action` is the server command name (e.g. `"subscribe"`, `"place_order"`). `data` is the
+    /// command payload as a `serde_json::Value`. `correlation_id` can be supplied to reuse a
+    /// known ID; if `None` a UUID v4 is generated. The correlation ID is used by
+    /// `get_my_packet_with_verification` to match the server's response to this specific request.
     pub fn new(action: String, data: Value, correlation_id: Option<String>) -> Self {
         OutBoundMessage {
             action,
@@ -461,6 +497,13 @@ pub struct Protocol2IR {
 pub struct ProtocolFns;
 
 impl ProtocolFns {
+    /// Inspects a raw byte slice and determines which wire protocol it belongs to.
+    ///
+    /// Returns `Ok(ProtocolKind::Protocol1)` for JSON message packets (terminated with `}`)
+    /// or `Ok(ProtocolKind::Protocol2)` for binary order book packets (terminated with `L`).
+    /// Returns `Err` if the packet is too short, has an invalid header byte, or fails the
+    /// per-protocol structural checks. This is called by the reading thread on each candidate
+    /// packet before it is forwarded for decoding.
     pub fn analyse_bytes(bytes: &[u8]) -> Result<ProtocolKind, String> {
         if bytes.len() < 6 {
             return Err(format!(
@@ -539,6 +582,10 @@ impl ProtocolFns {
         }
     }
 
+    /// Serializes an [`OutBoundMessage`] into Protocol 1 wire bytes.
+    ///
+    /// Produces an owned `Vec<u8>` in the form `~NNNN|{...json...}` where `NNNN` is the
+    /// zero-padded length of the JSON body. Pass the result directly to the TCP write stream.
     pub fn protocol_1_encoder(message: &OutBoundMessage) -> Vec<u8> {
         let json_string = serde_json::to_string(message).expect("Failed to serialize message");
         let length_of_message = json_string.len();
@@ -546,6 +593,11 @@ impl ProtocolFns {
         protocol_message.as_bytes().to_vec()
     }
 
+    /// Deserializes a Protocol 1 packet into an [`InBoundMessage`].
+    ///
+    /// Strips the `~NNNN` header and the `|` separator, then JSON-parses the body. Returns an
+    /// owned `InBoundMessage`. Panics if the packet is malformed or the JSON cannot be parsed —
+    /// caller is expected to only pass bytes that have already passed [`analyse_bytes`].
     pub fn protocol_1_decoder(message: &[u8]) -> InBoundMessage {
         let message_str = String::from_utf8_lossy(message);
         let parts: Vec<&str> = message_str.splitn(2, '|').collect();
@@ -558,6 +610,12 @@ impl ProtocolFns {
         inbound_message
     }
 
+    /// Decompresses a Protocol 1 message in place if it is marked as compressed.
+    ///
+    /// When the server sets `compressed: true` on a response (used for large payloads such as
+    /// market search results), the `data` field is a base64-encoded zlib-compressed JSON string.
+    /// This function decodes and decompresses it, replacing `data` with the parsed `Value` and
+    /// setting `compressed` to `false`. Is a no-op if `compressed` is not `Some(true)`.
     pub fn maybe_decompress_p1(msg: &mut InBoundMessage) {
         if msg.compressed != Some(true) {
             return;
@@ -585,6 +643,14 @@ impl ProtocolFns {
         }
     }
 
+    /// Decodes a Protocol 2 packet into its intermediate representation.
+    ///
+    /// Strips framing bytes, extracts the symbol string and the trailing comma-separated float
+    /// values (bids, asks, timestamps) using `fast_float` for performance. Returns an owned
+    /// [`Protocol2IR`] with the raw `Vec<f64>`. The caller must know the value layout to
+    /// interpret the slice; prefer [`bytes_to_orderbook`] which handles the layout automatically.
+    /// Uses `unsafe` `from_utf8_unchecked` on the inner content — safe because Argus only
+    /// encodes ASCII.
     pub fn protocol_2_decoder(message_bytes: &[u8]) -> Result<Protocol2IR, String> {
         if message_bytes[message_bytes.len() - 1] != 0x4C {
             Err(format!(
@@ -633,6 +699,14 @@ impl ProtocolFns {
         })
     }
 
+    /// Decodes a Protocol 2 packet directly into an [`OrderBook`].
+    ///
+    /// Calls [`protocol_2_decoder`] and interprets the resulting float slice as interleaved
+    /// (price, quantity) pairs: the first half is bids, the second half is asks, with the last
+    /// two values being the exchange timestamp (`remote_timestamp`) and the Argus timestamp
+    /// (`argus_timestamp`). `depth` controls how many levels to read from each side; defaults
+    /// to 10 if `None`. Panics if the packet contains fewer values than `depth * 2` per side.
+    /// Returns an owned `OrderBook` — this is a point-in-time snapshot, not a live handle.
     pub fn bytes_to_orderbook(message_bytes: &[u8], depth: Option<usize>) -> OrderBook {
         let depth = depth.unwrap_or(10);
         let ir = ProtocolFns::protocol_2_decoder(message_bytes)
