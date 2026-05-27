@@ -473,6 +473,12 @@ pub struct SubscriptionResponse {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+pub struct UnsubscriptionResponse {
+    pub subscribed: Vec<String>,
+    pub failed: Vec<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct CLOBInfo {
     pub event_name: String,
     pub market_name: String,

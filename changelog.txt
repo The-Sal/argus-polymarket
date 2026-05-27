@@ -38,3 +38,10 @@ Changes:
     * ProtocolFns::bytes_to_orderbook (method)
 
 ====================================================================================================
+Version 1.1.0
+Added:
+    + MarketDataConnection::unsubscribe_from_instrument (method)
+    + MarketDataConnection::unsubscribe_from_event (method)
+    + UnsubscriptionResponse (struct)
+
+====================================================================================================

@@ -395,6 +395,97 @@ impl MarketDataConnection {
         Ok(subscription)
     }
 
+    /// Subscribes to all outcome tokens belonging to a market event (identified by ticker).
+    ///
+    /// Sends a `subscribe_to_market_by_ticker` request and blocks until confirmation. Returns a
+    /// [`SubscriptionResponse`] where `subscribed` contains the CLOB token IDs for all outcomes
+    /// in the market — for binary (Up/Down) markets index 0 is the Up token and index 1 is the
+    /// Down token. Pass these token IDs to [`fetch_clob_id_information`] to resolve the
+    /// `aot_p2_symbol` needed to look up order books, and to [`place_order`] / [`cancel_order`].
+    pub fn subscribe_to_event(
+        &self,
+        market_ticker: &str,
+    ) -> Result<SubscriptionResponse, String> {
+        let msg = OutBoundMessage::new(
+            "subscribe_to_market_by_ticker".to_string(),
+            serde_json::to_value(vec![market_ticker.to_string()]).unwrap(),
+            None,
+        );
+        let packet = ProtocolFns::protocol_1_encoder(&msg);
+        self.send_message(&packet);
+        let response = self
+            .get_my_packet_with_verification(&msg, None)
+            .map_err(|e| format!("Failed to get subscription confirmation: {}", e))?;
+
+        if response.error.is_some() {
+            return Err(format!(
+                "Server error when subscribing to event: {:?}",
+                response.error
+            ));
+        }
+
+        let subscription: SubscriptionResponse = serde_json::from_value(response.data)
+            .map_err(|e| format!("Failed to parse subscription response: {}", e))?;
+
+        Ok(subscription)
+    }
+
+
+    /// Sends an `unsubscribe` request and blocks until confirmation. Returns
+    /// an [`UnsubscriptionResponse`] confirming which tokens were successfully unsubscribed. After
+    /// a successful unsubscription, the server will stop streaming Protocol 2 order book packets
+    /// for the outcome tokens in this market. Any pending order book updates in the map from
+    /// [`get_order_book`] will not be updated going forward.
+    pub fn unsubscribe_from_instrument(&self, instrument: &str) -> Result<UnsubscriptionResponse, String> {
+        let msg = OutBoundMessage::new(
+            "unsubscribe".to_string(),
+            serde_json::to_value(vec![instrument.to_string()]).unwrap(),
+            None,
+        );
+        let packet = ProtocolFns::protocol_1_encoder(&msg);
+        self.send_message(&packet);
+        let response = self
+            .get_my_packet_with_verification(&msg, None);
+
+        if response.is_err() {
+            return Err(format!("Failed to get unsubscription confirmation: {}", response.err().unwrap()));
+        }
+
+        let unsubscription: UnsubscriptionResponse = serde_json::from_value(response.unwrap().data)
+            .map_err(|e| format!("Failed to parse unsubscription response: {}", e))?;
+
+        Ok(unsubscription)
+
+    }
+
+    /// Unsubscribes from all outcome tokens belonging to a market event (identified by ticker).
+    /// Sends an `unsubscribe_from_market_by_ticker` request and blocks until confirmation. Returns
+    /// an [`UnsubscriptionResponse`] confirming which tokens were successfully unsubscribed. After
+    /// a successful unsubscription, the server will stop streaming Protocol 2 order book packets
+    /// for the outcome tokens in this market. Any pending order book updates in the map from
+    /// [`get_order_book`] will not be updated going forward.
+    pub fn unsubscribe_from_event(&self, market_ticker: &str) -> Result<UnsubscriptionResponse, String> {
+        let msg = OutBoundMessage::new(
+            "unsubscribe_from_market_by_ticker".to_string(),
+            serde_json::to_value(vec![market_ticker.to_string()]).unwrap(),
+            None,
+        );
+        let packet = ProtocolFns::protocol_1_encoder(&msg);
+        self.send_message(&packet);
+        let response = self
+            .get_my_packet_with_verification(&msg, None);
+
+        if response.is_err() {
+            return Err(format!("Failed to get unsubscription confirmation: {}", response.err().unwrap()));
+        }
+
+        let unsubscription: UnsubscriptionResponse = serde_json::from_value(response.unwrap().data)
+            .map_err(|e| format!("Failed to parse unsubscription response: {}", e))?;
+
+        Ok(unsubscription)
+
+    }
+
     /// Searches for market tickers whose names contain `query`.
     ///
     /// Sends a `search_markets` request to the server and blocks until the response arrives.
@@ -432,40 +523,6 @@ impl MarketDataConnection {
         Ok(markets)
     }
 
-    /// Subscribes to all outcome tokens belonging to a market event (identified by ticker).
-    ///
-    /// Sends a `subscribe_to_market_by_ticker` request and blocks until confirmation. Returns a
-    /// [`SubscriptionResponse`] where `subscribed` contains the CLOB token IDs for all outcomes
-    /// in the market — for binary (Up/Down) markets index 0 is the Up token and index 1 is the
-    /// Down token. Pass these token IDs to [`fetch_clob_id_information`] to resolve the
-    /// `aot_p2_symbol` needed to look up order books, and to [`place_order`] / [`cancel_order`].
-    pub fn subscribe_to_event(
-        &self,
-        market_ticker: &str,
-    ) -> Result<SubscriptionResponse, String> {
-        let msg = OutBoundMessage::new(
-            "subscribe_to_market_by_ticker".to_string(),
-            serde_json::to_value(vec![market_ticker.to_string()]).unwrap(),
-            None,
-        );
-        let packet = ProtocolFns::protocol_1_encoder(&msg);
-        self.send_message(&packet);
-        let response = self
-            .get_my_packet_with_verification(&msg, None)
-            .map_err(|e| format!("Failed to get subscription confirmation: {}", e))?;
-
-        if response.error.is_some() {
-            return Err(format!(
-                "Server error when subscribing to event: {:?}",
-                response.error
-            ));
-        }
-
-        let subscription: SubscriptionResponse = serde_json::from_value(response.data)
-            .map_err(|e| format!("Failed to parse subscription response: {}", e))?;
-
-        Ok(subscription)
-    }
 
     /// Returns the current strike price (price-to-beat) for a market.
     ///
